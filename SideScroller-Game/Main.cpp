@@ -15,72 +15,80 @@ class platformClass {
         float yvel;
         float xpos;
         float ypos;
-        platformClass(float xpos, float ypos) {
-            xpos = xpos;
-            ypos = ypos;
+        int scale;
+        int topSide;
+        int rightSide;
+        int leftSide;
+        int bottomSide;
+        Sprite image;
+        platformClass(int initXpos, int initYpos, Sprite sprite) {
+            scale = 3;
+            image = sprite;
+            image.setPosition(initXpos, initYpos);
+            image.setScale(scale, scale);
+            leftSide = image.getPosition().x;
+            rightSide = image.getPosition().x + (image.getLocalBounds().width * scale);
+            topSide = image.getPosition().y;
+            bottomSide = image.getPosition().y + (image.getLocalBounds().height * scale);
         }
 
 };
 class playerClass{
     
     public:
-        float xvel;
-        float yvel;
-        float xpos;
-        float ypos;
+        float xVel;
+        float yVel;
+        float xPos;
+        float yPos;
         bool playerFaceright;
         bool onGround;
-        playerClass(){
+        Sprite image;
+        playerClass(Sprite sprite){
+            image = sprite;
             playerFaceright = true;
             onGround = false;
-            xvel = 0;
-            yvel = 0;
-            xpos = 0;
-            ypos = 0;
+            xVel = 0;
+            yVel = 0;
+            xPos = 0;
+            yPos = 0;
             
         }
-        void update(bool playerUp,bool playerDown,bool playerLeft,bool playerRight) {
+        void update(bool playerUp, bool playerDown, bool playerLeft, bool playerRight, platformClass platforms) {
             if (playerRight) {
                 playerFaceright = true;
-                xvel = 1;
+                xVel = .5;
             }
-            else if (playerLeft) {
+            if (playerLeft) {
                 playerFaceright = false;
-                xvel = -1;
+                xVel = -.5;
             }
             if (playerUp) {
-                yvel = -1;
+                yVel = -.5;
             }
-            else if (playerDown) {
-                yvel = 1;
+            if (playerDown) {
+                yVel = .5;
             }
             if (!(playerRight || playerLeft)) {
-                
-                xvel = 0;
+
+                xVel = 0;
             }
             if (!(playerUp || playerDown)) {
 
-                yvel = 0;
+                yVel = 0;
             }
-            if (onGround) {
-                yvel = 0;
+            if (onGround == true) {
+                yVel = 0;
             }
-            xpos += xvel;
-            ypos += yvel;
-            collide();
-
-            cout << xpos << endl;
-            cout << ypos << endl;
+            //xPos += xVel;
+            //yPos += yVel;
+            collide(platforms);
         }
-        void collide() {
-            if (ypos > 100) {
-                yvel = 0;
-                onGround = true;
-            }
-            else {
-                onGround = false;
+        void collide(platformClass platforms) {
+            if (image.getPosition().x > platforms.leftSide) {
+                image.setPosition(Vector2f(platforms.leftSide, image.getPosition().y));
             }
         }
+            
 };
 
 int main()
@@ -89,13 +97,19 @@ int main()
     
     bool playerUp = false, playerDown = false, playerLeft = false, playerRight = false;
 
-
-    playerClass playerObject ;
+    Texture platformDefault;
+    platformDefault.loadFromFile("C:\\Users\\gueri\\OneDrive\\Programming\\SideScroller-Game\\Data\\Images\\Ground.png");
+    Sprite earthSprite1(platformDefault);
+    earthSprite1.setTextureRect(IntRect(0, 0, 15, 15));
+    
+    
 
     Texture alienTexture;
     alienTexture.loadFromFile("C:\\Users\\gueri\\OneDrive\\Programming\\SideScroller-Game\\Data\\Images\\Alien.png");
     Sprite alienSprite(alienTexture);
 
+    playerClass playerObject(alienSprite);
+    platformClass platformObj(100, 100, earthSprite1);
     while (window.isOpen())
     {
         Event event;
@@ -115,14 +129,15 @@ int main()
         if (!(Keyboard::isKeyPressed(Keyboard::Up))) playerUp = false;
         if (!(Keyboard::isKeyPressed(Keyboard::Down))) playerDown = false;
 
-        playerObject.update(playerUp, playerDown, playerLeft, playerRight);
+        playerObject.update(playerUp, playerDown, playerLeft, playerRight, platformObj);
 
         
 
         window.clear();
 
         window.draw(alienSprite);
-        alienSprite.move(Vector2f(playerObject.xvel, playerObject.yvel));
+        window.draw(platformObj.image);
+        alienSprite.move(Vector2f(playerObject.xVel, playerObject.yVel));
         
         window.display();
         
